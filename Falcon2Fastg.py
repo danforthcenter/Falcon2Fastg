@@ -29,7 +29,6 @@ ovlp_len = defaultdict(int)
 read_assoc_ctgs = defaultdict(list)
 
 parser = argparse.ArgumentParser(description='Falcon2Fastg converts FALCON output to FASTG format')
-parser.add_argument('--delimiter', default=' ', help='Allows user to use tabs as delimiter for new FALCON version')
 parser.add_argument('--only-output', help='Only output either "reads" or "contigs". Defaults to both reads and contigs', required=False)
 args = vars(parser.parse_args())
 
@@ -97,7 +96,7 @@ def create_read_pair_tuples():
 # saves each contig seen in p_ctg.fa. Will be used later while building fastg file
 # important because many contigs like 00R are not found in p_ctg.fa
 # so we need to change the name of such contigs to 00F'
-def create_p_ctg_names_set(delim):
+def create_p_ctg_names_set(delim=' '):
     p_ctg_name_list = []
     p_ctg_headers_list = []
     global p_ctg_names_set
@@ -116,7 +115,7 @@ def create_p_ctg_names_set(delim):
 # extract headers from ctg_paths, and converts it into a dictionary
 # of the form [ctg_name] : {ctg_start_read, ctg_end_read}
 # converts names such as 00R to 00F' (only if not seen in p_ctg.fa)
-def create_contig_dict(delim):
+def create_contig_dict(delim=' '):
     ctg_headers_list = []
     fp_ctg = open ("ctg_paths")
     for line in fp_ctg:
@@ -343,7 +342,7 @@ def print_non_ovlp_sources_complement(node_mode):
 
 # creates a unitig dictionary, with key as a tuple of (start, via, end) nodes
 # values are a list of reads that make up that unitig (last column of utg_data)
-def create_utg_dict(delim):
+def create_utg_dict(delim=' '):
     utg_headers_list = []
     utg_composed = []
     fp_utg = open("utg_data")
@@ -398,7 +397,7 @@ def read_density_in_ctg(ctg_name):
 
 
 # creates a CSV file that looks like ReadNode,CtgBelongs,MapPosition
-def create_readgraph_csv(delim):
+def create_readgraph_csv(delim=' '):
     print( "ReadNode"+","+"CtgBelongs"+":"+"MapPosition" )
     with open("p_ctg_tiling_path") as tilings:
         tiling_lines = csv.reader(tilings, delimiter=delim)
@@ -459,14 +458,14 @@ if __name__ == "__main__":
             sys.stdout.close()
         if mode == "contig" or mode == "both":
             sys.stdout = open('contigs.fastg','w')
-            create_utg_dict(args["delimiter"])
-            create_p_ctg_names_set(args["delimiter"])
-            create_contig_dict(args["delimiter"])
+            create_utg_dict()
+            create_p_ctg_names_set()
+            create_contig_dict()
             make_contig_connections()
             make_fastg("contig")
             print_non_ovlp_sources("contig")
             print_non_ovlp_sources_complement("contig")
             sys.stdout.close()
             sys.stdout = open('ReadsInContigs.csv','w')
-            create_readgraph_csv(args["delimiter"])
+            create_readgraph_csv()
             sys.stdout.close()
